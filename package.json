@@ -12,6 +12,31 @@
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": [
+      {
+        "id": "kbs-conf",
+        "title": "Keyboard Sound",        
+        "properties": {
+          "keyboardSound.haveProxy": {
+            "order": 1,
+            "type": "boolean",
+            "default": false,
+            "description": "Derriere un proxy ?"
+          },
+          "keyboardSound.address-proxy": {
+            "type": "string",
+            "description": "l'adresse du proxy",
+            "editPresentation": "singlelineText"
+          },
+          "keyboardSound.address-webserice": {
+            "type": "string",
+            "description": "l'adresse du webservice",
+            "editPresentation": "singlelineText",
+            "default": "http://localhost:9998"
+          }
+        }
+      }
+    ],
     "views": {
       "explorer": [
         {
