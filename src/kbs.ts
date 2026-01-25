@@ -22,11 +22,9 @@ export class KeyboardSoundExtention {
 	}
 
 	private loadSSE() {
-		//Activating extension 'undefined_publisher.kbsv3' failed: EventSource is not defined.
 		const sse = new EventSource("http://localhost:9998/sse");
-		sse.addEventListener("play", (e) => {		//data reçu:  c1:s1			
-			let split = e.data.split(":");
-			let url = "http://localhost:9998/sound/" + split[0] + "/" + split[1];
+		sse.addEventListener("play", (e) => {		//data reçu:  s1		
+			let url = "http://localhost:9998/sound/" + e.data;
 			this.playSound(url);
 		});
 	}
@@ -34,6 +32,7 @@ export class KeyboardSoundExtention {
 	private async playSound(url: string) {
 		const response = await fetch(url);
 		if (!response.ok) {
+			console.error(response.statusText)
 			throw new Error(`Erreur HTTP: ${response.status}`);
 		}
 		if (response.body) {
@@ -50,16 +49,18 @@ export class KeyboardSoundExtention {
 	}
 
 	private async initMethode(context: vscode.ExtensionContext) {
-		let response = await fetch("http://localhost:9998/channel/");
-		this.channels = await response.json() as Channel[];
-		for (let chan of this.channels) {
-			let url = "http://localhost:9998/sound/" + chan.id;
-			let resp = await fetch(url);
-			chan.sons = await resp.json() as Sound[];
-			for (let s of chan.sons) {
-				s.channel = chan;
-			}
-		}
+		let response = await fetch("http://localhost:9998/sound/");
+		let mapRaw = await response.json() as Map<string, Sound[]>;
+		let mapSound = new Map(Object.entries(mapRaw));
+		response = await fetch("http://localhost:9998/channel/");
+		let channelsRaw = await response.json() as Map<string, Channel>;
+		let mapChannels = new Map(Object.entries(channelsRaw));
+		//map.entries().next() // return un tableau tab[0] = key ; tab[1] = valeur		
+		mapSound.forEach((v: Sound[], k: string) => {
+			let chan = mapChannels.get(k) as Channel;
+			chan.sons = v; // obliger de ratacher les sons au channel.
+			this.channels.push(chan);
+		});
 		const view = vscode.window.createTreeView('kbs', { treeDataProvider: this.createTreeDataProvider(), showCollapseAll: true });
 		context.subscriptions.push(view);
 	}
@@ -86,15 +87,11 @@ export class KeyboardSoundExtention {
 					collapsibleState: element.id.startsWith('c') ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None
 				};
 			},
-
 		};
 	}
 
 	sendSound(sound: Sound) {
-		let url = `http://localhost:9998/sse/${sound.channel.id}/${sound.id}`
+		let url = `http://localhost:9998/sse/${sound.id}`;
 		fetch(url, { method: "POST" }).then(() => { });
 	}
-
-
 }
-
