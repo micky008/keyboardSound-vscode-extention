@@ -11,9 +11,8 @@ export function activate(context: vscode.ExtensionContext) {
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "kbsv3" is now active!');
 
-
-	let kb = new KeyboardSoundExtention(context);
-	vscode.commands.registerCommand('kbsv3.sendSound', (item) => kb.sendSound(item));
+	 let kb = new KeyboardSoundExtention(context);
+	 vscode.commands.registerCommand('kbsv3.sendSound', (item) => kb.sendSound(item));
 
 	console.log('kb activated');
 }
