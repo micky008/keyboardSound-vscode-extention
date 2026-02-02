@@ -43,6 +43,14 @@
           "light": "resources/play-light.svg",
           "dark": "resources/play-light.svg"
         }
+      },
+      {
+        "command": "kbsv3.refresh",
+        "title": "refresh",
+        "icon": {
+          "light": "resources/refresh-light.svg",
+          "dark": "resources/refresh-dark.svg"
+        }
       }
     ],
     "menus": {
@@ -50,27 +58,37 @@
         {
           "command": "kbsv3.sendSound",
           "when": "view == kbs && viewItem == sound",
-          "group": "inline"
-        }
+          "group": "inline" 
+        }        
+      ],
+      "view/title":[
+          {
+            "command": "kbsv3.refresh",
+            "when": "view == kbs",
+            "group": "navigation" 
+          }
       ]
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src",
-    "test": "vscode-test"
+    "compile": "npm run check-types && node esbuild.js",
+    "check-types": "tsc --noEmit",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "vscode:prepublish": "npm run package",
+    "package": "node esbuild.js --production"
   },
   "devDependencies": {
     "@types/eventsource": "^1.1.15",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
     "@types/play-sound": "^1.1.2",
-    "@types/vscode": "^1.103.0",
+    "@types/vscode": "^1.80.0",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.7.1",
+    "esbuild": "^0.27.2",
     "eslint": "^9.39.2",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.52.0"

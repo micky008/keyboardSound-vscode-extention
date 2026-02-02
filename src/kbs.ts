@@ -17,13 +17,23 @@ export class KeyboardSoundExtention {
 
 	private channels: Channel[] = [];
 	private serverUrl: string = "";
+	private sseLink: any;
 
 	constructor(context: vscode.ExtensionContext) {
 		this.initConfUrlServer();
 		this.initProxy();
-		this.initMethode(context);
-		this.loadSSE();
+		this.initGetSounds().then( () => {
+			this.initMethode(context);
+			this.loadSSE();
+		});
 	}
+
+	public refresh(){
+		this.initGetSounds().then( () => {			
+			this.loadSSE();
+		});
+	}
+
 
 	private initConfUrlServer() {
 		const config = vscode.workspace.getConfiguration();
@@ -43,13 +53,16 @@ export class KeyboardSoundExtention {
 	}
 
 	private loadSSE() {
-		let sse: any;
+		if (this.sseLink != undefined){
+			this.sseLink.close();
+		}
 		let url = this.serverUrl + "sse";
-		sse = new EventSource(url);
-		sse.addEventListener("play", (e: any) => {		//data reçu:  s		
+		this.sseLink = new EventSource(url);
+		this.sseLink.addEventListener("play", (e: any) => {		//data reçu:  s		
 			let url = this.serverUrl + "sound/" + e.data;
 			this.playSound(url);
 		});
+
 	}
 
 	private async playSound(url: string) {
@@ -76,7 +89,8 @@ export class KeyboardSoundExtention {
 		return await response.json();
 	}
 
-	private async initMethode(context: vscode.ExtensionContext) {
+	private async initGetSounds(): Promise<void> {
+		this.channels = [];
 		let mapSoundRaw = await this.getResponse(this.serverUrl + "sound");
 		let mapSound = new Map<string, Sound[]>(Object.entries(mapSoundRaw));
 		let channelsRaw = await this.getResponse(this.serverUrl + "channel");
@@ -86,6 +100,10 @@ export class KeyboardSoundExtention {
 			chan.sons = v; // obliger de ratacher les sons au channel.
 			this.channels.push(chan);
 		});
+		return Promise.resolve(undefined);
+	}
+
+	private initMethode(context: vscode.ExtensionContext) {
 		const view = vscode.window.createTreeView('kbs', { treeDataProvider: this.createTreeDataProvider(), showCollapseAll: true });
 		context.subscriptions.push(view);
 	}

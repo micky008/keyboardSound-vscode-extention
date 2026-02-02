@@ -13,7 +13,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 	 let kb = new KeyboardSoundExtention(context);
 	 vscode.commands.registerCommand('kbsv3.sendSound', (item) => kb.sendSound(item));
-
+	 vscode.commands.registerCommand('kbsv3.refresh', () => kb.refresh());
+	 
 	console.log('kb activated');
 }
 
