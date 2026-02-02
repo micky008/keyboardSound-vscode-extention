@@ -46,7 +46,7 @@
       },
       {
         "command": "kbsv3.refresh",
-        "title": "refresh",
+        "title": "Refresh",
         "icon": {
           "light": "resources/refresh-light.svg",
           "dark": "resources/refresh-dark.svg"
@@ -58,22 +58,24 @@
         {
           "command": "kbsv3.sendSound",
           "when": "view == kbs && viewItem == sound",
-          "group": "inline" 
-        }        
+          "group": "inline"
+        }
       ],
-      "view/title":[
-          {
-            "command": "kbsv3.refresh",
-            "when": "view == kbs",
-            "group": "navigation" 
-          }
+      "view/title": [
+        {
+          "command": "kbsv3.refresh",
+          "when": "view == kbs",
+          "group": "navigation"
+        }
       ]
     }
   },
   "scripts": {
+    "compile2": "tsc -p ./",
     "compile": "npm run check-types && node esbuild.js",
     "check-types": "tsc --noEmit",
-    "watch": "npm-run-all -p watch:*",
+    "watch": "tsc -watch -p ./",
+    "watch2": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
     "vscode:prepublish": "npm run package",
@@ -90,6 +92,7 @@
     "@vscode/vsce": "^3.7.1",
     "esbuild": "^0.27.2",
     "eslint": "^9.39.2",
+    "npm-run-all": "^4.1.5",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.52.0"
   },

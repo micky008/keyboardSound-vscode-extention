@@ -13,24 +13,26 @@ class Channel extends Treeitem { public sons: Sound[] = [] } //id=c1
 
 class Sound extends Treeitem { channel: Channel = new Channel() }//id=s1
 
-export class KeyboardSoundExtention {
+export class KeyboardSoundExtention implements vscode.TreeDataProvider<Treeitem> {
 
 	private channels: Channel[] = [];
 	private serverUrl: string = "";
 	private sseLink: any;
+	private _onDidChangeTreeData: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
+	public onDidChangeTreeData = this._onDidChangeTreeData.event;
 
 	constructor(context: vscode.ExtensionContext) {
+		this.initMethode(context);
 		this.initConfUrlServer();
 		this.initProxy();
-		this.initGetSounds().then( () => {
-			this.initMethode(context);
-			this.loadSSE();
-		});
+		this.refresh();
 	}
 
-	public refresh(){
-		this.initGetSounds().then( () => {			
+
+	public refresh() {
+		this.initGetSounds().then(() => {
 			this.loadSSE();
+			this._onDidChangeTreeData.fire(undefined);
 		});
 	}
 
@@ -53,7 +55,7 @@ export class KeyboardSoundExtention {
 	}
 
 	private loadSSE() {
-		if (this.sseLink != undefined){
+		if (this.sseLink != undefined) {
 			this.sseLink.close();
 		}
 		let url = this.serverUrl + "sse";
@@ -104,34 +106,37 @@ export class KeyboardSoundExtention {
 	}
 
 	private initMethode(context: vscode.ExtensionContext) {
-		const view = vscode.window.createTreeView('kbs', { treeDataProvider: this.createTreeDataProvider(), showCollapseAll: true });
+		const view = vscode.window.createTreeView('kbs', { treeDataProvider: this, showCollapseAll: true });
 		context.subscriptions.push(view);
 	}
 
-	createTreeDataProvider(): vscode.TreeDataProvider<Treeitem> {
+
+	getChildren(element: Treeitem): Treeitem[] {
+		if (!element) {
+			return this.channels;
+		}
+		if (element.id.startsWith('s')) {
+			return [];
+		}
+		if (element.id.startsWith('c')) {
+			let chan = element as Channel;
+			return chan.sons;
+		}
+		return [element];
+	}
+
+	getTreeItem(element: Treeitem): vscode.TreeItem {
 		return {
-			getChildren: (element: Treeitem): Treeitem[] => {
-				if (!element) {
-					return this.channels;
-				}
-				if (element.id.startsWith('s')) {
-					return [];
-				}
-				if (element.id.startsWith('c')) {
-					let chan = element as Channel;
-					return chan.sons;
-				}
-				return [element];
-			},
-			getTreeItem: (element: Treeitem): vscode.TreeItem => {
-				return {
-					contextValue: element.id.startsWith('c') ? 'channel' : 'sound',
-					label: element.name,
-					collapsibleState: element.id.startsWith('c') ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None
-				};
-			},
+			contextValue: element.id.startsWith('c') ? 'channel' : 'sound',
+			label: element.name,
+			collapsibleState: element.id.startsWith('c') ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None
 		};
 	}
+
+
+
+
+
 
 	sendSound(sound: Sound) {
 		let url = `${this.serverUrl}sse/${sound.id}`;
